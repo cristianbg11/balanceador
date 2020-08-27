@@ -1,0 +1,86 @@
+version: '2'
+services:
+
+  cornelia-service:
+    restart: always
+    image: practica-12-img
+    environment:
+      - SERVER_PORT=8080
+      - spring.datasource.url=jdbc:mysql://mariadb:3306/encuesta?useUnicode=true&characterEncoding=UTF-8
+    networks:
+      - practica-network
+    ports:
+      - 8080:8080
+    depends_on:
+      - mariadb
+  cornelia2-service:
+    restart: always
+    image: practica-12-img
+    environment:
+      - SERVER_PORT=8081
+      - spring.datasource.url=jdbc:mysql://mariadb:3306/encuesta?useUnicode=true&characterEncoding=UTF-8
+    networks:
+      - practica-network
+    depends_on:
+      - mariadb
+    ports:
+      - 8081:8081
+  cornelia3-service:
+    restart: always
+    image: practica-12-img
+    environment:
+      - SERVER_PORT=8082
+      - spring.datasource.url=jdbc:mysql://mariadb:3306/encuesta?useUnicode=true&characterEncoding=UTF-8
+    networks:
+      - practica-network
+    depends_on:
+      - mariadb
+    ports:
+      - 8082:8082
+  ha-proxy:
+    restart: always
+    networks:
+      - practica-network
+    depends_on:
+      - cornelia-service
+      - cornelia2-service
+      - cornelia3-service
+    image: haproxy:2.0.2
+    volumes:
+      - ./etc:/usr/local/etc/haproxy
+    ports:
+      - 81:80
+  mariadb:
+    restart: always
+    image: mariadb:10.2
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST:  "%"
+      MYSQL_DATABASE: encuesta
+    volumes:
+      - mysql_db:/var/lib/mysql
+    networks:
+      - practica-network
+volumes:
+  mysql_db:
+
+networks:
+  practica-network:
+#  spring-boot:
+#    image: practica-12-img
+#    networks:
+#      - practica-network
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - mysql
+#  mysql:
+#    image: mysql:8
+#    networks:
+#      - practica-network
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=root
+#      - MYSQL_DATABASE=encuesta
+
